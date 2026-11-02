@@ -2,7 +2,12 @@
   "mcpServers": {
     "local-email": {
       "command": "uvx",
-      "args": ["--from", "Email-MCP-zack", "email-mcp"],
+      "args": [
+        "--no-config",
+        "--index-url", "https://pypi.org/simple",
+        "--from", "Email-MCP-zack",
+        "email-mcp"
+      ],
       "env": {
         "EMAIL_USERNAME": "you@example.com",
         "EMAIL_PASSWORD": "replace-with-password-or-app-password",

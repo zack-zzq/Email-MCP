@@ -9,7 +9,7 @@
 安装 [uv](https://docs.astral.sh/uv/getting-started/installation/) 后，MCP 客户端可以通过下面的命令自动从 PyPI 获取软件包并启动服务：
 
 ```text
-uvx --from Email-MCP-zack email-mcp
+uvx --no-config --index-url https://pypi.org/simple --from Email-MCP-zack email-mcp
 ```
 
 PyPI 分发包名为 **`Email-MCP-zack`**，启动命令为 **`email-mcp`**，Python 模块名为 **`email_mcp`**。`uvx` 会在独立环境中安装并缓存软件包，不需要下载源码或预先创建本项目的虚拟环境。运行时仍通过 MCP 配置的 `env` 传入邮箱信息。
@@ -17,7 +17,7 @@ PyPI 分发包名为 **`Email-MCP-zack`**，启动命令为 **`email-mcp`**，Py
 也可以先安装，再把 MCP 客户端的 command 配为 `email-mcp`、args 配为 `[]`：
 
 ```powershell
-python -m pip install Email-MCP-zack
+python -m pip install --index-url https://pypi.org/simple Email-MCP-zack
 ```
 
 如果客户端找不到 `uvx` 或 `email-mcp`，把 command 改成该程序的完整路径。服务等待 MCP 客户端通过标准输入输出通信，启动后没有交互式界面。
@@ -31,7 +31,12 @@ python -m pip install Email-MCP-zack
   "mcpServers": {
     "local-email": {
       "command": "uvx",
-      "args": ["--from", "Email-MCP-zack", "email-mcp"],
+      "args": [
+        "--no-config",
+        "--index-url", "https://pypi.org/simple",
+        "--from", "Email-MCP-zack",
+        "email-mcp"
+      ],
       "env": {
         "EMAIL_USERNAME": "you@example.com",
         "EMAIL_PASSWORD": "replace-with-password-or-app-password",
@@ -48,6 +53,14 @@ python -m pip install Email-MCP-zack
 ```
 
 完整三协议 PyPI 示例见 [examples/mcp-config.json](examples/mcp-config.json)。如需固定版本，将 args 中的包名改为 `Email-MCP-zack==0.1.0`；如需更新 uvx 缓存的版本，可在命令中加 `--upgrade`。附件默认保存到用户主目录下 `.email-mcp/attachments`，可通过 `EMAIL_ATTACHMENT_DIR` 指定其他路径。
+
+启动参数中的 `--no-config` 跳过 uv 配置文件，`--index-url` 明确使用官方 PyPI，不会修改电脑上的全局软件源设置。部分镜像源尚未同步新包时，原来的简短命令会显示 `No solution found` / `not found in the package registry` 并退出，MCP 客户端可能只显示 `Connection closed`。
+
+首次启动需要下载依赖。如果客户端等待启动的时间不足，可以先在终端安装软件包，再使用 `email-mcp` 作为 command（必要时填写完整路径）、`[]` 作为 args：
+
+```powershell
+uv tool install --no-config --index-url https://pypi.org/simple Email-MCP-zack
+```
 
 只使用 POP3 收信时，去掉 IMAP 配置，加入：
 

@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from mcp import Client
 from mcp.client.stdio import StdioServerParameters
 
@@ -31,7 +32,8 @@ async def test_mcp_discovery_validation_and_safe_errors(configured):
         assert "fixture-password" not in str(error)
 
 
-async def test_real_stdio_subprocess_lists_reads_and_sends(configured):
+@pytest.mark.parametrize("mode", ["auto", "legacy"])
+async def test_real_stdio_subprocess_lists_reads_and_sends(configured, mode):
     with mail_server("imap") as (imap_port, _), mail_server("smtp") as (smtp_port, smtp_state):
         env = {key: value for key, value in os.environ.items() if not key.startswith("EMAIL_")}
         env.update(
@@ -53,7 +55,7 @@ async def test_real_stdio_subprocess_lists_reads_and_sends(configured):
             env=env,
             cwd=str(Path(__file__).resolve().parents[1]),
         )
-        async with Client(params) as client:
+        async with Client(params, mode=mode) as client:
             tools = await client.list_tools()
             assert len(tools.tools) == 11
             health = await client.call_tool("email_check_connection", {})
