@@ -32,7 +32,7 @@ only-include = ["src", "tests", "examples", "README.md", ".env.example", "pyproj
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--basetemp=.pytest_cache/tmp"
+addopts = "--basetemp=.pytest-tmp"
 
 [tool.ruff]
 target-version = "py311"
