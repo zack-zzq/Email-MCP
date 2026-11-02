@@ -1,25 +1,26 @@
-# Local Email MCP
+# Email-MCP-zack
 
 纯本地运行的通用邮件 MCP 服务，使用 Python 3.11+ 和官方 MCP Python SDK，通过 **stdio** 接入 MCP 客户端。支持 **IMAP / POP3 收信、SMTP 发信**，可以单独启用任一协议。
 
 服务不启动 HTTP 端口，不依赖邮件平台的云 API。邮箱账号、密码、授权码和 OAuth2 access token 均通过启动进程的环境变量传入；代码不读取 `.env`，不保存凭据。邮件操作只连接你配置的邮件服务器；安装依赖时需要访问 Python 软件包源。MCP 客户端及其所使用的模型如何处理邮件内容，由客户端自身配置决定。
 
-## 安装
+## 直接从 PyPI 运行（无需克隆项目）
 
-Windows PowerShell，在本项目目录执行：
+安装 [uv](https://docs.astral.sh/uv/getting-started/installation/) 后，MCP 客户端可以通过下面的命令自动从 PyPI 获取软件包并启动服务：
 
-```powershell
-uv --cache-dir .uv-cache sync --locked
+```text
+uvx --from Email-MCP-zack email-mcp
 ```
 
-没有 uv 时，也可以使用 pip：
+PyPI 分发包名为 **`Email-MCP-zack`**，启动命令为 **`email-mcp`**，Python 模块名为 **`email_mcp`**。`uvx` 会在独立环境中安装并缓存软件包，不需要下载源码或预先创建本项目的虚拟环境。运行时仍通过 MCP 配置的 `env` 传入邮箱信息。
+
+也可以先安装，再把 MCP 客户端的 command 配为 `email-mcp`、args 配为 `[]`：
 
 ```powershell
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install .
+python -m pip install Email-MCP-zack
 ```
 
-Linux/macOS 对应解释器路径为 `.venv/bin/python`。安装后可用 `email-mcp` 或 `python -m email_mcp` 启动。服务等待 MCP 客户端通过标准输入输出通信，启动后没有交互式界面。
+如果客户端找不到 `uvx` 或 `email-mcp`，把 command 改成该程序的完整路径。服务等待 MCP 客户端通过标准输入输出通信，启动后没有交互式界面。
 
 ## MCP 客户端配置
 
@@ -29,8 +30,8 @@ Linux/macOS 对应解释器路径为 `.venv/bin/python`。安装后可用 `email
 {
   "mcpServers": {
     "local-email": {
-      "command": "F:\\Email-MCP\\.venv\\Scripts\\python.exe",
-      "args": ["-m", "email_mcp"],
+      "command": "uvx",
+      "args": ["--from", "Email-MCP-zack", "email-mcp"],
       "env": {
         "EMAIL_USERNAME": "you@example.com",
         "EMAIL_PASSWORD": "replace-with-password-or-app-password",
@@ -39,15 +40,16 @@ Linux/macOS 对应解释器路径为 `.venv/bin/python`。安装后可用 `email
         "EMAIL_IMAP_TLS": "ssl",
         "EMAIL_SMTP_HOST": "smtp.example.com",
         "EMAIL_SMTP_PORT": "587",
-        "EMAIL_SMTP_TLS": "starttls",
-        "EMAIL_ATTACHMENT_DIR": "F:\\Email-MCP\\.email-mcp\\attachments"
+        "EMAIL_SMTP_TLS": "starttls"
       }
     }
   }
 }
 ```
 
-完整三协议示例见 [examples/mcp-config.json](examples/mcp-config.json)。只使用 POP3 收信时，去掉 IMAP 配置，加入：
+完整三协议 PyPI 示例见 [examples/mcp-config.json](examples/mcp-config.json)。如需固定版本，将 args 中的包名改为 `Email-MCP-zack==0.1.0`；如需更新 uvx 缓存的版本，可在命令中加 `--upgrade`。附件默认保存到用户主目录下 `.email-mcp/attachments`，可通过 `EMAIL_ATTACHMENT_DIR` 指定其他路径。
+
+只使用 POP3 收信时，去掉 IMAP 配置，加入：
 
 ```json
 {
@@ -116,15 +118,43 @@ TLS 默认校验证书和主机名。`starttls` 升级失败会直接报错，�
 
 ## 验证与开发
 
+从源码开发时再克隆仓库，并在项目目录安装开发依赖：
+
 ```powershell
+git clone https://github.com/zack-zzq/Email-MCP.git
+cd Email-MCP
 uv --cache-dir .uv-cache sync --locked --group dev
 .venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\ruff.exe check .
+.venv\Scripts\ruff.exe check src tests
 ```
+
+源码运行的 MCP 配置见 [examples/mcp-config.source.json](examples/mcp-config.source.json)，将其中的解释器和附件目录替换成自己的路径。Linux/macOS 对应解释器为 `.venv/bin/python`。
 
 测试使用本地模拟邮箱及回环地址，不需要真实账号，不向外部收件人发邮件。覆盖三种协议、MCP stdio 握手与调用、中文 MIME、附件边界、TLS 配置、UID 变化、删除范围和凭据错误脱敏。
 
 连接真实邮箱后，先调用 `email_check_connection`，再列出邮件。不同服务商可能需要在邮箱设置中开启 IMAP/POP3/SMTP，并使用客户端授权码；仅提供 OAuth2 的邮箱需要配置 token。实际服务商的登录策略、限制和扩展支持，需要在你的邮箱环境中验证。
+
+## 自动发布到 PyPI
+
+[publish.yml](.github/workflows/publish.yml) 使用 PyPI Trusted Publishing，通过 GitHub OIDC 发布，不需要设置 `PYPI_API_TOKEN`。对应的 PyPI 发布者配置为：
+
+| 项目 | 值 |
+| --- | --- |
+| PyPI Project Name | `Email-MCP-zack` |
+| Owner | `zack-zzq` |
+| Repository | `Email-MCP` |
+| Workflow name | `publish.yml` |
+| Environment | `pypi` |
+
+发布步骤：
+
+1. 同步修改 `pyproject.toml` 的 `version` 和 `src/email_mcp/__init__.py` 的 `__version__`，每次使用新的版本号，更新并提交 `uv.lock`。
+2. 将代码合入 `main`，等待测试和打包验证通过。
+3. 在 GitHub 发布一个 Release，标签必须为 `v` 加版本号，例如 `v0.1.0`。Release 发布后，Action 自动测试、构建 wheel 和源码包、检查 PyPI 元数据、验证安装后的 MCP 通信，再将同一批安装包上传 PyPI。
+
+普通 push 和 pull request 只执行验证。也可在 Actions → Publish to PyPI → Run workflow 中选择 `main`，将 `publish` 勾选为 true，手动发布当前版本；默认 false 只验证。PyPI 已存在的版本不会被覆盖，同一版本再次发布会失败。仓库中的 `pypi` Environment 如设置了必需审批人，发布会等待该环境的审批。
+
+PyPI 页面：[Email-MCP-zack](https://pypi.org/project/Email-MCP-zack/)。如果发布者设置里仍填写了旧名 `Email-MCP`，需要将它改为 `Email-MCP-zack`，其他配置保持与上表一致。
 
 ## 参考
 

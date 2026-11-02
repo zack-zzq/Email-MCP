@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "local-email": {
-      "command": "F:\\Email-MCP\\.venv\\Scripts\\python.exe",
-      "args": ["-m", "email_mcp"],
+      "command": "uvx",
+      "args": ["--from", "Email-MCP-zack", "email-mcp"],
       "env": {
         "EMAIL_USERNAME": "you@example.com",
         "EMAIL_PASSWORD": "replace-with-password-or-app-password",
@@ -15,8 +15,7 @@
         "EMAIL_SMTP_HOST": "smtp.example.com",
         "EMAIL_SMTP_PORT": "587",
         "EMAIL_SMTP_TLS": "starttls",
-        "EMAIL_READ_PROTOCOL": "imap",
-        "EMAIL_ATTACHMENT_DIR": "F:\\Email-MCP\\.email-mcp\\attachments"
+        "EMAIL_READ_PROTOCOL": "imap"
       }
     }
   }

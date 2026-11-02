@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [project]
-name = "local-email-mcp"
+name = "Email-MCP-zack"
 version = "0.1.0"
 description = "Local stdio MCP server for IMAP, POP3 and SMTP"
 readme = "README.md"
@@ -15,13 +15,18 @@ dependencies = ["mcp>=2.3,<3"]
 email-mcp = "email_mcp.server:main"
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "pytest-asyncio>=0.25,<2", "ruff>=0.11,<1", "build>=1.2,<2"]
+dev = ["pytest>=8,<10", "pytest-asyncio>=0.25,<2", "ruff>=0.11,<1", "build>=1.2,<2", "twine>=6,<8"]
+
+[project.urls]
+Homepage = "https://github.com/zack-zzq/Email-MCP"
+Repository = "https://github.com/zack-zzq/Email-MCP"
+Issues = "https://github.com/zack-zzq/Email-MCP/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/email_mcp"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "tests", "examples", "README.md", ".env.example", "pyproject.toml", "uv.lock", "LICENSE"]
+only-include = ["src", "tests", "examples", "README.md", ".env.example", "pyproject.toml", "uv.lock", "LICENSE", ".github/workflows/publish.yml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
